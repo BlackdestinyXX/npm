@@ -30,9 +30,9 @@ module.exports = class Tickets extends base {
             };
             switch (customId) {
                 case this.prefix: {
-                    if (this.options?.ticket?.limitOnePerUser && hasTicket({ userId: member.id, guild, token: this.options.encryptToken, prefix: this.options.prefix })) return send({ embeds: [ embed(`❌ You can only create one (${this.options.prefix}) ticket at a time.`, { guild }) ], ephemeral: true })
+                    if (this.options?.ticket?.limitOnePerUser && hasTicket({ userId: member.id, guild, token: this.options.encryptToken, prefix: this.options.prefix })) return send({ embeds: [ embed(`❌ Puoi creare solo un (${this.options.prefix}) ticket alla volta.`, { guild }) ], ephemeral: true })
                     if (this.options.support?.ignore?.length) {
-                        if (this.options.support.ignore.some(c => member.roles?.cache?.has?.(c))) return send({ embeds: [embed(`❌ You can no longer create tickets, if you believe this is a mistake contact one of the staff members.`)], ephemeral: true });
+                        if (this.options.support.ignore.some(c => member.roles?.cache?.has?.(c))) return send({ embeds: [embed(`❌ Non puoi più creare tickets, se credi sia un errore, contatta uno staffer.`)], ephemeral: true });
                     }
                     if (this.options.modal?.enabled) return int.showModal(this.modal({ title: this.options.modal.title, components: this.options.modal.questions?.length >= 1 ? this.options.modal.questions.slice(0, 5).map(c => ({ type: 1, components: [{ min_length: c.min_length || 10, max_length: c.max_length || 4000, type: 4, style: c.style || 2, label: c.label, value: c.value, placeholder: c.placeholder, required: c.required, custom_id: c.label || `random_${Math.floor(Math.random() * 10000)}` }] })) : [] })).catch(e => this._debug(e));
                     return this.handleCreate({ guild, member, category, send })
@@ -41,15 +41,15 @@ module.exports = class Tickets extends base {
                 case `${this.prefix}:close`: {
                     if (this.options.support?.canOnlyCloseTickets && !member.permissions.has(PermissionFlagsBits.ManageGuild)) {
                         if (!this.getSupportIds.users?.includes?.(member.id)) {
-                            if (!this.getSupportIds.roles?.some?.(c => member.roles?.cache?.has?.(c))) return send({ ephemeral: true, embeds: [{ author: { name: `Only support staff can close tickets`, iconURL: "https://cdn.discordapp.com/emojis/781955502035697745.gif" }, color: 0xFF0000 }] })
+                            if (!this.getSupportIds.roles?.some?.(c => member.roles?.cache?.has?.(c))) return send({ ephemeral: true, embeds: [{ author: { name: `Solo lo staff può chiudere i ticket.`, iconURL: "https://cdn.discordapp.com/emojis/781955502035697745.gif" }, color: 0xFF0000 }] })
                         }
                     }
                     return send({ 
                         ephemeral: true, 
-                        embeds: [ embed(`🤔 Are you sure you want to close the ticket?`, { color: 0xFF000, guild }) ], 
+                        embeds: [ embed(`🤔 Sei sicuro di voler chiudere il ticket?`, { color: 0xFF000, guild }) ], 
                         components: [
                             { type: 1, components: [
-                                button({ title: "Yes, close the ticket!", style: 3, emoji: { id: "807031399563264030" }, id: `${this.prefix}:close:confirm:${code(channel.topic?.split?.("ID: ")?.[1], "d", this.options.encryptToken)}${this.options?.ticket?.closeReason ? `:modal_submit` : ""}` })
+                                button({ title: "Si", style: 3, emoji: { id: "807031399563264030" }, id: `${this.prefix}:close:confirm:${code(channel.topic?.split?.("ID: ")?.[1], "d", this.options.encryptToken)}${this.options?.ticket?.closeReason ? `:modal_submit` : ""}` })
                             ] 
                         }] 
                     })
@@ -69,7 +69,7 @@ module.exports = class Tickets extends base {
                     if (embed.length >= 6000 || split) {
                         return this.handleCreate({
                             guild, member, category, send, embeds: fields.map((v, i) => ({
-                                title: `Form Response: ${v.name}`, color: embed.color, description: v.value,
+                                title: `Risposta al form: ${v.name}`, color: embed.color, description: v.value,
                                 author: i === 0 ? { name: member.user.username, iconURL: member.user.displayAvatarURL({ dynamic: true }) } : undefined,
                                 timestamp: fields.length - 1 === i ? new Date() : undefined,
                                 footer: fields.length - 1 === i ? { text: `ID: ${member.id}` } : undefined
@@ -83,37 +83,37 @@ module.exports = class Tickets extends base {
                 if (customId.includes(`:modal_submit`)) {
                     return int.showModal(modal({
                         id: `${customId.split(":modal_submit")[0]}:modal_complete`,
-                        title: "Reason",
-                        components: [ { type: 1, components: [ { type: 4, custom_id: "reason", label: "Reason", style: 2, min_length: 1, max_length: 1024, required: true, placeholder: "What's the reason for closing the ticket?" } ] } ]
+                        title: "Motivo",
+                        components: [ { type: 1, components: [ { type: 4, custom_id: "reason", label: "Motivo", style: 2, min_length: 1, max_length: 1024, required: true, placeholder: "Qual è il motivo di chiusura del ticket?" } ] } ]
                     }))
                 }
                 await send({ ephemeral: true }, true);
-                let reason = "No Reason Provided";
+                let reason = "Nessun motivo fornito";
                 if (int.type === InteractionType.ModalSubmit) reason = int.fields.getTextInputValue("reason")
                 let user = await this.options.client.users.fetch(customId.split("close:confirm:")[1].replace(/:modal_complete/gi, "")).catch(e => this._debug(e));
-                if (!user) return send({ embeds: [ embed(`❌ I was unable to fetch the user that opened the ticket.`) ] });
+                if (!user) return send({ embeds: [ embed(`❌ Non sono riuscito ad ottenere l'utente che ha creato il ticket.`) ] });
                 let messages = await fetchMessages(channel, 5000);
-                if (!messages?.length) return send({ embeds: [ embed(`❌ I was unable to close the ticket, I couldn't fetch the messages in this channel.`) ] });
-                let closed = await channel.delete(`${member.user.tag} (${member.id}) closed the ticket.`).catch(e => this._debug(e));
-                if (!closed) return send({ embeds: [ embed(`❌ I was unable to delete the channel and close the ticket.`) ] });
+                if (!messages?.length) return send({ embeds: [ embed(`❌ Non sono riuscito a chiudere il ticket.`) ] });
+                let closed = await channel.delete(`${member.user.tag} (${member.id}) ha chiuso il ticket.`).catch(e => this._debug(e));
+                if (!closed) return send({ embeds: [ embed(`❌ Non sono riuscito ad eliminare il canale e chiudere il ticket, controlla i miei permessi.`) ] });
                 return this.closeTicket({ channel, guild, user, member, messages, reason });
             };
 
             if (customId.startsWith("unban:")) {
-                if (!int.memberPermissions?.has?.(PermissionFlagsBits.BanMembers)) return send({ embeds: [ embed(`❌ You need (Ban Members) in this server to complete this action!`) ], ephemeral: true });
+                if (!int.memberPermissions?.has?.(PermissionFlagsBits.BanMembers)) return send({ embeds: [ embed(`❌ Hai bisogno del permesso BAN_MEMBERS in questo server per completare l'azione!`) ], ephemeral: true });
                 let server = getAppealServer(this.options);
                 if (!server) return send({ embeds: [embed(`❌ I was unable to find the appeal server!`)], ephemeral: true });
                 let mod = server.members.resolve(member.id) || await server.members.fetch(member.id).catch(e => this._debug(e));
                 if (!mod) return send({ embeds: [embed(`❌ I was unable to find you in ${server.name}!`)], ephemeral: true });
-                if (!mod.permissions?.has?.(PermissionFlagsBits.BanMembers)) return send({ embeds: [embed(`❌ You need (Ban Members) in ${server.name} to complete this action!`)], ephemeral: true });
+                if (!mod.permissions?.has?.(PermissionFlagsBits.BanMembers)) return send({ embeds: [embed(`❌ Hai bisogno del permesso BAN_MEMBERS in ${server.name} per completare l'azione!`)], ephemeral: true });
                 return int.showModal(modal({
                     id: `unban_modal:${customId.split(":")[1]}`,
-                    title: `Unban From ${server.name}`,
-                    components: [ { type: 1, components: [ { type: 4, label: "Reason", custom_id: "reason", style: 2, min_length: 1, max_length: 512, required: true, value: `No Reason Provided | By: ${member.user.tag} (${member.id})` } ] } ]
+                    title: `Unban da ${server.name}`,
+                    components: [ { type: 1, components: [ { type: 4, label: "Motivo", custom_id: "reason", style: 2, min_length: 1, max_length: 512, required: true, value: `Nessun motivo fornito | Da: ${member.user.tag} (${member.id})` } ] } ]
                 })).catch(e => this._debug(e));
             }
 
-            if (customId.startsWith("unban_modal:")) {
+            /*if (customId.startsWith("unban_modal:")) {
                 await send({ ephemeral: true }, true);
                 const [ , id ] = customId.split(":");
                 if (!int.memberPermissions?.has?.(PermissionFlagsBits.BanMembers)) return send({ embeds: [ embed(`❌ You need (Ban Members) in this server to complete this action!`)] });
@@ -130,7 +130,7 @@ module.exports = class Tickets extends base {
                     send({ embeds: [embed(`✅ Successfully unbanned <@${id}> from ${server.name}!`)] })
                 })
                 .catch(e => send({ embeds: [ { title: "ERROR", fields: [ { name: "\u200b", value: `❌ Unable to unban <@${id} from ${server.name}!` } ], description: `\`\`\`js\n${e.message ?? e.stack}\`\`\``, color: 0xFF0000 } ] }))
-            }
+            }*/
         };
     };
 
@@ -164,7 +164,7 @@ module.exports = class Tickets extends base {
             });
             if (member) permissions.push({ type: "member", id: uId, allow });
         }
-        if (appeals?.enabled) {
+        /*if (appeals?.enabled) {
             let server = getAppealServer(this.options);
             if (server) {
                 let ban = await server.bans.fetch({ user: member.id, force: true }).catch(e => this._debug(e));
@@ -184,12 +184,12 @@ module.exports = class Tickets extends base {
                     ]
                 }
             }
-        }
+        }*/
         let channel = await guild.channels.create({
             name: `${this.options.prefix}-${generate().slice(0, 5).replace(/-|_/g, "")}`,
             type: ChannelType.GuildText, 
             parent: category, 
-            reason: `Ticket created by: @${member.user.tag} (${member.id})`,
+            reason: `Ticket creato da: @${member.user.tag} (${member.id})`,
             topic: `ID: ${code(member.id, "e", this.options.encryptToken)}`,
             permissionOverwrites: [
                 { 
@@ -224,40 +224,40 @@ module.exports = class Tickets extends base {
                 ...permissions
             ]
         }).catch(e => this._debug(e));
-        if (!channel) return send({ embeds: [embed(`❌ I was unable to create the ticket channel, if this keeps happening contact one of the staff members via their DMs!`)] });
+        if (!channel) return send({ embeds: [embed(`❌ Non sono riuscito ad aprire il ticket, se il problema persiste contatta uno staffer!`)] });
         let msg = await channel.send({
-            content: (this.options.ticket?.open || this.options.ticketOpen)?.content?.replace?.(/%user%/gi, member.user.toString())?.replace?.(/%server%/gi, guild.name) || `${member.user.toString()} 👋 Hello, please explain what you need help with.`,
-            embeds: (this.options.ticket?.open || this.options.ticketOpen)?.embeds || [ embed(undefined, { title: `Support will be with you shortly.`, color: 0xF50DE3, guild, footer: { text: `To close the ticket, press the button below` } }) ],
+            content: (this.options.ticket?.open || this.options.ticketOpen)?.content?.replace?.(/%user%/gi, member.user.toString())?.replace?.(/%server%/gi, guild.name) || `${member.user.toString()} 👋 Benvenuto, spiega il tuo problema`,
+            embeds: (this.options.ticket?.open || this.options.ticketOpen)?.embeds || [ embed(undefined, { title: `Il supporto arriverà presto.`, color: 0xF50DE3, guild, footer: { text: `Per chiuderei il ticket, clicca il pulsante sottostante` } }) ],
             components: [ { type: 1, components: [ button({ id: `${this.prefix}:close`, title: `Close Ticket`, style: 4, emoji: { name: "🔒" } }) ] }]
         }).catch(e => this._debug(e));
         if (!msg) return null;
         if (sendBanReason) await channel.send(sendBanReason).catch(e => this._debug(e));
         if (embeds?.length <= 10) for await (const embed of embeds) await channel.send({ embeds: [embed] }).catch(e => this._debug(e));
         if (this.webhookOptions.id && this.webhookOptions.token) webhook(this.webhookOptions)
-            .embed(embed(`${de.user} User: ${member.user.toString()} \`@${member.user.tag}\` (${member.id})\n${de.channel} Channel: \`#${channel.name}\` (${channel.id})`, {
-                title: `TIcket: Opened`,
+            .embed(embed(`${de.user} Utente: ${member.user.toString()} \`@${member.user.tag}\` (${member.id})\n${de.channel} Canale: \`#${channel.name}\` (${channel.id})`, {
+                title: `Ticket: aperto`,
                 color: 0xFF000,
                 footer: { text: `Ticket ID: ${channel.name.split("-")[1]}` },
                 guild
             })).send().catch(e => this._debug(e));
         return send({
-            embeds: [ embed(channel.toString(), { color: 0xFF000, author: { name: `Ticket Created!`, icon_url: `https://cdn.discordapp.com/emojis/476629550797684736.gif` } }) ],
-            components: [{ type: 1, components: [button({ title: "Go to ticket", url: msg.url })] }]
+            embeds: [ embed(channel.toString(), { color: 0xFF000, author: { name: `Ticket Creato!`, icon_url: `https://cdn.discordapp.com/emojis/476629550797684736.gif` } }) ],
+            components: [{ type: 1, components: [button({ title: "Vai al ticket", url: msg.url })] }]
         })
     }
 
     async starterMessage(channelId, options) {
         let channel = this.options.client.channels.resolve(channelId);
-        if (!channel) return Promise.reject(`No channel found for: ${channelId}`);
-        if (!channel.isText()) return Promise.reject(`The channel ID provided isn't a text-based-channel`);
+        if (!channel) return Promise.reject(`Nessun canale trovato per: ${channelId}`);
+        if (!channel.isText()) return Promise.reject(`Questo canale non è un text-based-channel`);
         if (!channel.permissionsFor?.(this.options.client.user.id)?.has?.([
             PermissionFlagsBits.ViewChannel,
             PermissionFlagsBits.SendMessages,
             PermissionFlagsBits.AttachFiles,
             PermissionFlagsBits.EmbedLinks,
             PermissionFlagsBits.ReadMessageHistory
-        ])) return Promise.reject(`I'm missing permissions in ${channel.name} (${channelId})`);
+        ])) return Promise.reject(`Non ho i permessi in ${channel.name} (${channelId})`);
         return channel.send({ content: options?.content, files: options?.attachments, embeds: options?.embeds, components: options?.components || [{ type: 1, components: [this.button()] }] })
-            .then(() => console.log(`Sent the starter message in ${channel.name} (${channel.id})`))
+            .then(() => console.log(`Ho mandato il pannello in ${channel.name} (${channel.id})`))
     };
 };
