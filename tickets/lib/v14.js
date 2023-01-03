@@ -249,7 +249,7 @@ module.exports = class Tickets extends base {
     async starterMessage(channelId, options) {
         let channel = this.options.client.channels.resolve(channelId);
         if (!channel) return Promise.reject(`Nessun canale trovato per: ${channelId}`);
-        if (!channel.isText()) return Promise.reject(`Questo canale non è un text-based-channel`);
+        if (!channel.isTextBased()) return Promise.reject(`Questo canale non è un text-based-channel`);
         if (!channel.permissionsFor?.(this.options.client.user.id)?.has?.([
             PermissionFlagsBits.ViewChannel,
             PermissionFlagsBits.SendMessages,
